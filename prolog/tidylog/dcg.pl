@@ -185,13 +185,18 @@ name(A) -->
     { atom_codes(A,X) }.
 
 
-variable(var(Name)) -->
+variable(Var) -->
     layout_text_sequence,
     variable_token(X),
-    { atom_codes(Name,X) }.
-variable(var(Name)) -->
+    { atom_codes(Name,X) },
+    { set_variable_name(Var,Name) }.
+variable(Var) -->
     variable_token(X),
-    { atom_codes(Name,X) }.
+    { atom_codes(Name,X) },
+    { set_variable_name(Var,Name) }.
+
+set_variable_name(Var,Name) :-
+    put_attr(Var,tidylog,name(Name)).
 
 
 integer_number(N) -->
