@@ -1,5 +1,7 @@
 :- module(tidylog_dcg, [ prolog//1 ]).
 
+:- use_module(library(dcg/basics), [float//1]).
+
 % Thank you to P. Deransart, A. Ed-Dbali, L. Cervoni whose
 % "Prolog: The Standard" provided guidance for the initial
 % DCG that parsed Prolog code.
@@ -26,19 +28,12 @@ term(T,P) -->
 
 
 number_term(T,P) -->
-    % positive float
     float_number(F),
     rest_term(F,T,0,P).
 number_term(T,P) -->
     % positive integer
     integer_number(I),
     rest_term(I,T,0,P).
-number_term(T,P) -->
-    % negative float
-    name('-'),
-    float_number(F),
-    { NF is -F },
-    rest_term(NF,T,0,P).
 number_term(T,P) -->
     % negative integer
     name('-'),
@@ -197,8 +192,7 @@ integer_number(N) -->
 
 float_number(F) -->
     optional_layout_text,
-    float_number_token(X),
-    { number_codes(F,X) }.
+    float(F).
 
 
 open_paren -->
@@ -493,40 +487,6 @@ hex_constant(N) -->
     "0x",
     hex_digit_seq_char(Digits),
     { compute_integer(Digits,16,N) }.
-
-
-float_number_token(F) -->
-    integer_constant(N),
-    fraction(J),
-    exponent(E),
-    { flatten([N,J,E],F) }.
-float_number_token(F) -->
-    integer_constant(N),
-    fraction(J),
-    { flatten([N,J],F) }.
-
-
-fraction([0'.|N]) --> %'
-    ".",
-    integer_constant(N).
-
-exponent(E) -->
-    exponent_char(C),
-    sign(S),
-    integer_constant(N),
-    { flatten([[C|S],N],E) }.
-
-sign([0'-]) --> %'
-    "-".
-sign([0'+]) --> %'
-    "+".
-sign([]) -->
-    [].
-
-exponent_char(0'e) -->
-    "e".
-exponent_char(0'E) -->
-    "E".
 
 
 double_quoted_string_token(T) -->

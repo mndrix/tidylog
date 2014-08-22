@@ -22,6 +22,10 @@ term_expansion(Codes -> Term, Test) :-
 `42.` -> 42.
 `3.1415.` -> 3.1415.
 `2.998e8.` -> 2.998e8.
+`-37.` -> -37.
+`-8.734.` -> -8.734.
+`-1.4e3.` -> -1.4e3.
+`0.9e-2.` -> 0.9e-2.
 
 % strings
 `"double quoted string".` -> "double quoted string".
