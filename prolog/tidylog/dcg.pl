@@ -130,15 +130,13 @@ string_term(T,P) -->
     rest_term(S,T,0,P).
 
 double_quoted_string(S) -->
-    layout_text_sequence,
+    optional_layout_text,
     double_quoted_string_token(S).
 double_quoted_string(S) -->
     double_quoted_string_token(S).
 
 back_quoted_string(S) -->
-    layout_text_sequence,
-    back_quoted_string_token(S).
-back_quoted_string(S) -->
+    optional_layout_text,
     back_quoted_string_token(S).
 
 
@@ -177,20 +175,13 @@ rest_term(Term,Term,_,_) -->
 
 
 name(A) -->
-    layout_text_sequence,
-    name_token(X),
-    { atom_codes(A,X) }.
-name(A) -->
+    optional_layout_text,
     name_token(X),
     { atom_codes(A,X) }.
 
 
 variable(Var) -->
-    layout_text_sequence,
-    variable_token(X),
-    { atom_codes(Name,X) },
-    { set_variable_name(Var,Name) }.
-variable(Var) -->
+    optional_layout_text,
     variable_token(X),
     { atom_codes(Name,X) },
     { set_variable_name(Var,Name) }.
@@ -200,89 +191,72 @@ set_variable_name(Var,Name) :-
 
 
 integer_number(N) -->
-    layout_text_sequence,
-    integer_token(N).
-integer_number(N) -->
+    optional_layout_text,
     integer_token(N).
 
 
 float_number(F) -->
-    layout_text_sequence,
-    float_number_token(X),
-    { number_codes(F,X) }.
-float_number(F) -->
+    optional_layout_text,
     float_number_token(X),
     { number_codes(F,X) }.
 
 
 open_paren -->
-    layout_text_sequence,
-    "(".
-open_paren -->
+    optional_layout_text,
     "(".
 
 
 close_paren -->
-    layout_text_sequence,
-    ")".
-close_paren -->
+    optional_layout_text,
     ")".
 
 
 open_bracket -->
-    layout_text_sequence,
-    "[".
-open_bracket -->
+    optional_layout_text,
     "[".
 
 
 close_bracket -->
-    layout_text_sequence,
-    "]".
-close_bracket -->
+    optional_layout_text,
     "]".
 
 
 open_curly -->
-    layout_text_sequence,
-    "{".
-open_curly -->
+    optional_layout_text,
     "{".
 
 
 close_curly -->
-    layout_text_sequence,
-    "}".
-close_curly -->
+    optional_layout_text,
     "}".
 
 
 head_tail_separator -->
-    layout_text_sequence,
-    "|".
-head_tail_separator -->
+    optional_layout_text,
     "|".
 
 
 comma -->
-    layout_text_sequence,
-    ",".
-comma -->
+    optional_layout_text,
     ",".
 
 
 end -->
-    layout_text_sequence,
-    ".".
-end -->
+    optional_layout_text,
     ".".
 
 
-layout_text_sequence -->
-    layout_text,
-    layout_text_sequence.
-layout_text_sequence -->
-    layout_text.
+% matches Rule 0 or more times, consuming as many as possible
+:- meta_predicate greedy(//,?,?).
+greedy(Rule) -->
+    call(Rule),
+    greedy(Rule).
+greedy(_) -->
+    [].
+
+
+optional_layout_text -->
+    greedy(layout_text).
 
 
 layout_text -->
