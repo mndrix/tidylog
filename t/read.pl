@@ -13,30 +13,7 @@ term_expansion(Codes -> Term, Test) :-
 
 :- use_module(library(tap)).
 
-% atoms
-`hello.` -> hello.
-`mixed_Case.` -> mixed_Case.
-`'quoted atom'.` -> 'quoted atom'.
-
-% numbers
-`42.` -> 42.
-`3.1415.` -> 3.1415.
-`2.998e8.` -> 2.998e8.
-`-37.` -> -37.
-`-8.734.` -> -8.734.
-`-1.4e3.` -> -1.4e3.
-`0.9e-2.` -> 0.9e-2.
-
-% strings
-`"double quoted string".` -> "double quoted string".
-`\`back quoted string\`.` -> `back quoted string`.
-
-% compound terms
-`foo(a,b,c).` -> foo(a,b,c).
-`hello :- true.` -> (hello :- true).
-`1+2.` -> 1+2.
-`(:-).` -> (:-).
-`@mndrix.` -> @mndrix.
+:- ['t/samples'].
 
 
 % variables

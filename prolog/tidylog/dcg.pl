@@ -1,6 +1,8 @@
-:- module(tidylog_dcg, [ read_prolog//1 ]).
+:- module(tidylog_dcg, [ read_prolog//1, write_prolog//1 ]).
 
 :- use_module(library(dcg/basics), [float//1]).
+:- use_module(library(lists), [proper_length/2]).
+:- use_module(library(portray_text), []).
 
 % Thank you to P. Deransart, A. Ed-Dbali, L. Cervoni whose
 % "Prolog: The Standard" provided guidance for the initial
@@ -10,7 +12,12 @@ read_prolog(T) -->
     term(T,1200),
     end.
 
+write_prolog(T) -->
+    term_out(T),
+    end.
 
+
+% parse terms from a list of codes
 term(T,P) -->
     number_term(T,P).
 term(T,P) -->
@@ -25,6 +32,28 @@ term(T,P) -->
     string_term(T,P).
 term(T,P) -->
     prefix_operator_term(T,P).
+
+
+% generate list of codes from a term
+term_out(Head :- Body) -->
+    term_out(Head),
+    " :-",
+    nl,
+    indent,
+    term_out(Body).
+term_out(F) -->
+    { float(F) },
+    format("~g",[F]).
+term_out(Codes) -->
+    { proper_length(Codes,Length) },
+    { Length > 2 },
+    { portray_text:all_ascii(Codes) },  % predicate not exported
+    format("`~s`",[Codes]).
+term_out(Op) -->
+    { is_operator(Op) },
+    format("(~w)", [Op]).
+term_out(T) -->
+    format("~q",[T]).
 
 
 number_term(T,P) -->
@@ -240,6 +269,10 @@ end -->
     ".".
 
 
+% true if DCG is operating as a parser
+parsing(H,H) :-
+    nonvar(H).
+
 % matches Rule 0 or more times, consuming as many as possible
 :- meta_predicate greedy(//,?,?).
 greedy(Rule) -->
@@ -248,9 +281,12 @@ greedy(Rule) -->
 greedy(_) -->
     [].
 
+format(Pattern,Args,H,T) :-
+    format(codes(H,T),Pattern,Args).
+
 
 optional_layout_text -->
-    greedy(layout_text).
+    ( parsing -> greedy(layout_text) ; [] ).
 
 
 layout_text -->
@@ -583,6 +619,7 @@ compute_integer_([Code|Codes],Base,Accum0,N) :-
 
 
 is_operator(Op) :-
+    atom(Op),
     current_op(_,_,Op).
 
 infix_operator(Op,P,LeftP,RightP) :-
@@ -619,3 +656,10 @@ translate_back_quotes(Codes,Codes).
 
 translate_double_quotes(Codes, String) :-
     string_codes(String,Codes).
+
+
+nl -->
+    "\n".
+
+indent -->
+    "    ".  % 4 spaces
