@@ -1,4 +1,4 @@
-:- module(tidylog_dcg, [ prolog//1 ]).
+:- module(tidylog_dcg, [ read_prolog//1 ]).
 
 :- use_module(library(dcg/basics), [float//1]).
 
@@ -6,7 +6,7 @@
 % "Prolog: The Standard" provided guidance for the initial
 % DCG that parsed Prolog code.
 
-prolog(T) -->
+read_prolog(T) -->
     term(T,1200),
     end.
 

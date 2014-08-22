@@ -13,7 +13,7 @@ attr_unify_hook(_,_).
 %  True if Term can be read from Codes.  All characters of
 %  Codes must be consumed.
 codes_term(Codes, Term) :-
-    once(phrase(prolog(Term),Codes)).
+    once(phrase(read_prolog(Term),Codes)).
 
 
 %% variable_name(-Var, -Name:atom) is det.
