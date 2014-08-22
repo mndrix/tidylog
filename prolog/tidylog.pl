@@ -1,4 +1,5 @@
 :- module(tidylog, [ codes_term/2
+                   , variable_name/2
                    ]).
 
 :- use_module(library(tidylog/dcg)).
