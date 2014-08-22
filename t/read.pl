@@ -13,8 +13,6 @@ term_expansion(Codes -> Term, Test) :-
 
 :- use_module(library(tap)).
 
-:- ['t/samples'].
-
 
 % variables
 'named variable' :-
@@ -32,3 +30,6 @@ term_expansion(Codes -> Term, Test) :-
     var(Var),
     variable_name(Var, Name),
     Name == '_Ignore'.
+
+
+:- ['t/samples'].
