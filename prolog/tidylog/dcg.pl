@@ -35,6 +35,10 @@ term(T,P) -->
 
 
 % generate list of codes from a term
+term_out(Var) -->
+    { var(Var), ! },
+    { name_the_vars(Var, Names) },
+    write_term(Var,[variable_names(Names)]).
 term_out(Head :- Body) -->
     term_out(Head),
     " :-",
@@ -75,6 +79,12 @@ variable_term(T,P) -->
     variable(V),
     rest_term(V,T,0,P).
 
+name_the_vars(Term,Names) :-
+    term_variables(Term, Vars),
+    maplist(variable_name,Vars,Names).
+
+variable_name(Var,Name=Var) :-
+    get_attr(Var, tidylog, name(Name)).
 
 atom_term(T,P) -->
     atom(A),
@@ -283,6 +293,9 @@ greedy(_) -->
 
 format(Pattern,Args,H,T) :-
     format(codes(H,T),Pattern,Args).
+
+write_term(Term,Options,H,T) :-
+    with_output_to(codes(H,T),write_term(Term,Options)).
 
 
 optional_layout_text -->

@@ -13,4 +13,19 @@ term_expansion(Codes -> Term, Test) :-
 
 :- use_module(library(tap)).
 
+% variables
+'named variable' :-
+    codes_term(`Foo.`, Var),
+    codes_term(Codes, Var),
+    Codes == `Foo.`.
+'anonymous variable' :-
+    codes_term(`_.`, Var),
+    codes_term(Codes, Var),
+    Codes == `_.`.
+'named singleton variable' :-
+    codes_term(`_Ignore.`, Var),
+    codes_term(Codes, Var),
+    Codes == `_Ignore.`.
+
+
 :- ['t/samples'].
