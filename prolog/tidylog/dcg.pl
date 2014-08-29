@@ -1,8 +1,11 @@
 :- module(tidylog_dcg, [ read_prolog//1, write_prolog//1 ]).
 
+:- use_module(library(tidylog/comment/aol), [aol_comment//1]).
+:- use_module(library(tidylog/comment/ml), [ml_comment//1]).
+
+
 :- use_module(library(dcg/basics), [ eos//0
                                    , float//1
-                                   , string//1
                                    ]).
 :- use_module(library(lists), [proper_length/2]).
 :- use_module(library(portray_text), []).
@@ -46,11 +49,10 @@ term_out(Var) -->
     { var(Var), ! },
     { name_the_vars(Var, Names) },
     write_term(Var,[variable_names(Names)]).
-term_out('tidylog %full'(Text)) -->
-    format("% ~s~n",[Text]).
-term_out('tidylog %multi'(Lines)) -->
-    { once(phrase(join_lines(Lines),Codes)) },
-    format("/*\n~s\n*/",[Codes]).
+term_out(AolComment) -->
+    aol_comment(AolComment).
+term_out(MlComment) -->
+    ml_comment(MlComment).
 term_out(Head :- Body) -->
     term_out(Head),
     " :-",
@@ -329,63 +331,9 @@ is_comment('tidylog %multi'(_)).
 
 
 comment(Comment) -->
-    single_line_comment(Comment).
+    aol_comment(Comment).
 comment(Comment) -->
-    multi_line_comment(Comment).
-
-
-single_line_comment('tidylog %full'(Text)) -->
-    "%",
-    string(Codes0),
-    newline_char,
-    { trim(Codes0,Codes) },
-    { string_codes(Text,Codes) }.
-
-
-multi_line_comment('tidylog %multi'(Lines)) -->
-    comment_open,
-    string(Codes0),
-    comment_close,
-    { trim(Codes0,Codes) },
-    { once(phrase(lines(Lines),Codes)) }.
-
-
-comment_open -->
-    "/*".
-
-
-comment_close -->
-    "*/".
-
-
-trim(Codes0, Codes) :-
-    once(phrase(trim(Codes),Codes0)).
-
-trim(Codes) -->
-    greedy(type_char(space,_)),
-    string(Codes),
-    greedy(type_char(space,_)).
-
-
-lines([]) -->
-    eos.
-lines([Line|Lines]) -->
-    string(Codes),
-    newline_char,
-    { string_codes(Line,Codes) },
-    lines(Lines).
-lines([]) -->
-    [].
-
-
-join_lines([]) -->
-    [].
-join_lines([Line]) -->
-    format("~s",[Line]).
-join_lines([Line|Lines]) -->
-    format("~s~n", [Line]),
-    join_lines(Lines).
-
+    ml_comment(Comment).
 
 
 name_token(A) -->
