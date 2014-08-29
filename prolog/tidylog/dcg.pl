@@ -1,6 +1,6 @@
 :- module(tidylog_dcg, [ read_prolog//1, write_prolog//1 ]).
 
-:- use_module(library(dcg/basics), [float//1]).
+:- use_module(library(dcg/basics), [eos//0, float//1]).
 :- use_module(library(lists), [proper_length/2]).
 :- use_module(library(portray_text), []).
 
@@ -317,7 +317,7 @@ comment -->
 single_line_comment -->
     "%",
     comment_text,
-    newline_char(_).
+    newline_char.
 
 
 multi_line_comment -->
@@ -390,7 +390,7 @@ single_quoted_item_seq([]) -->
 
 continuation_escape_sequence -->
     "\\",
-    newline_char(_).
+    newline_char.
 
 semicolon_token([';']) -->
     ";".
@@ -579,8 +579,8 @@ alpha_num_char(C) -->
 alpha_num_char(0'_) -->
     "_".
 
-newline_char(C) -->
-    type_char(newline,C).
+newline_char -->
+    type_char(newline,_).
 
 space_char(C) -->
     type_char(white,C).
