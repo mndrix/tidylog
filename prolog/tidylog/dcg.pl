@@ -1,6 +1,9 @@
 :- module(tidylog_dcg, [ read_prolog//1, write_prolog//1 ]).
 
-:- use_module(library(dcg/basics), [eos//0, float//1]).
+:- use_module(library(dcg/basics), [ eos//0
+                                   , float//1
+                                   , string//1
+                                   ]).
 :- use_module(library(lists), [proper_length/2]).
 :- use_module(library(portray_text), []).
 
@@ -9,12 +12,16 @@
 % DCG that parsed Prolog code.
 
 read_prolog(T) -->
+    comment(T),
+    eos.
+read_prolog(T) -->
     term(T,1200),
     end.
 
+
 write_prolog(T) -->
     term_out(T),
-    end.
+    ( { is_comment(T) } -> []; end ).
 
 
 % parse terms from a list of codes
@@ -39,6 +46,11 @@ term_out(Var) -->
     { var(Var), ! },
     { name_the_vars(Var, Names) },
     write_term(Var,[variable_names(Names)]).
+term_out('tidylog %full'(Text)) -->
+    format("% ~s~n",[Text]).
+term_out('tidylog %multi'(Lines)) -->
+    { once(phrase(join_lines(Lines),Codes)) },
+    format("/*\n~s\n*/",[Codes]).
 term_out(Head :- Body) -->
     term_out(Head),
     " :-",
@@ -303,27 +315,39 @@ optional_layout_text -->
 
 
 layout_text -->
-    comment.
+    comment(_).
 layout_text -->
     layout_char(_).
 
 
-comment -->
-    single_line_comment.
-comment -->
-    multi_line_comment.
+is_comment(Var) :-
+    var(Var),
+    !,
+    fail.
+is_comment('tidylog %full'(_)).
+is_comment('tidylog %multi'(_)).
 
 
-single_line_comment -->
+comment(Comment) -->
+    single_line_comment(Comment).
+comment(Comment) -->
+    multi_line_comment(Comment).
+
+
+single_line_comment('tidylog %full'(Text)) -->
     "%",
-    comment_text,
-    newline_char.
+    string(Codes0),
+    newline_char,
+    { trim(Codes0,Codes) },
+    { string_codes(Text,Codes) }.
 
 
-multi_line_comment -->
+multi_line_comment('tidylog %multi'(Lines)) -->
     comment_open,
-    comment_text,
-    comment_close.
+    string(Codes0),
+    comment_close,
+    { trim(Codes0,Codes) },
+    { once(phrase(lines(Lines),Codes)) }.
 
 
 comment_open -->
@@ -334,11 +358,34 @@ comment_close -->
     "*/".
 
 
-comment_text -->
-    [_],
-    comment_text.
-comment_text -->
+trim(Codes0, Codes) :-
+    once(phrase(trim(Codes),Codes0)).
+
+trim(Codes) -->
+    greedy(type_char(space,_)),
+    string(Codes),
+    greedy(type_char(space,_)).
+
+
+lines([]) -->
+    eos.
+lines([Line|Lines]) -->
+    string(Codes),
+    newline_char,
+    { string_codes(Line,Codes) },
+    lines(Lines).
+lines([]) -->
     [].
+
+
+join_lines([]) -->
+    [].
+join_lines([Line]) -->
+    format("~s",[Line]).
+join_lines([Line|Lines]) -->
+    format("~s~n", [Line]),
+    join_lines(Lines).
+
 
 
 name_token(A) -->
@@ -581,6 +628,8 @@ alpha_num_char(0'_) -->
 
 newline_char -->
     type_char(newline,_).
+newline_char -->
+    eos.
 
 space_char(C) -->
     type_char(white,C).
