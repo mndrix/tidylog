@@ -10,6 +10,8 @@
                           , when_parsing//1
                           ]).
 
+:- use_module(library(tidylog/char), [horizontal//0]).
+
 
 %% parsing// is semidet.
 %
@@ -60,12 +62,13 @@ codes([Code|Codes]) -->
 %
 %  Line is all characters before a newline or end of stream.  Newline
 %  character is left on the stream.
+rest_of_line([]) -->
+    prefer_none(horizontal),
+    ( \+ \+ "\n" ; eos ).
 rest_of_line([Code|Codes]) -->
     [Code],
     { Code \== 0'\n },
     rest_of_line(Codes).
-rest_of_line([]) -->
-    ( \+ \+ "\n" ; eos ).
 
 
 %% prefer_none(:Rule)//

@@ -18,3 +18,16 @@
 'multiline comment: write' :-
     codes_term(C, 'tidylog %multi'(["multiline comment"])),
     C == `/*\nmultiline comment\n*/`.
+
+
+'single line: trailing spaces' :-
+    codes_term(`% word   `, T),
+    T == 'tidylog %full'("word").
+
+'multiline: trailing spaces' :-
+    codes_term(`/* word  \nanother    */`,T),
+    T == 'tidylog %multi'(["word","another"]).
+
+'single line: extra internal spaces' :-
+    codes_term(`% word  etc`, T),
+    T == 'tidylog %full'("word  etc").
