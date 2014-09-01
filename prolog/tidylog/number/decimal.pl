@@ -16,6 +16,7 @@ decimal(N) -->
     ).
 decimal(N) -->
     % generating
+    { integer(N) },
     ( { N < 0 }, "-", { M is -N }, decimal_(M)
     ; decimal_(N)
     ).

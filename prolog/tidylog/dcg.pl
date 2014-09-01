@@ -62,7 +62,6 @@ term_out(AolComment) -->
 term_out(MlComment) -->
     ml_comment(MlComment).
 term_out(Integer) -->
-    { integer(Integer) },
     decimal(Integer).
 term_out(Op) -->
     { is_operator(Op) },
