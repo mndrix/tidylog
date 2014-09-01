@@ -65,6 +65,17 @@ term_out(MlComment) -->
 term_out(Integer) -->
     { integer(Integer) },
     decimal(Integer).
+term_out(Op) -->
+    { is_operator(Op) },
+    format("(~w)",[Op]).
+term_out(Atom) -->
+    { atom(Atom) },
+    name(Atom).
+term_out(Punctuation) -->
+    { atom(Punctuation) },
+    punctuation(Punctuation).
+term_out(Text) -->
+    text(_,Text).
 term_out(Head :- Body) -->
     term_out(Head),
     " :-",
@@ -74,14 +85,6 @@ term_out(Head :- Body) -->
 term_out(F) -->
     { float(F) },
     format("~g",[F]).
-term_out(Codes) -->
-    { proper_length(Codes,Length) },
-    { Length > 2 },
-    { portray_text:all_ascii(Codes) },  % predicate not exported
-    format("`~s`",[Codes]).
-term_out(Op) -->
-    { is_operator(Op) },
-    format("(~w)", [Op]).
 term_out(T) -->
     format("~q",[T]).
 
@@ -180,21 +183,11 @@ paren_term(T,P) -->
 
 
 string_term(T,P) -->
-    double_quoted_string(S),
+    text(string,S),
     rest_term(S,T,0,P).
 string_term(T,P) -->
-    back_quoted_string(S),
+    text(codes,S),
     rest_term(S,T,0,P).
-
-double_quoted_string(S) -->
-    optional_layout_text,
-    double_quoted_string_token(S).
-double_quoted_string(S) -->
-    double_quoted_string_token(S).
-
-back_quoted_string(S) -->
-    optional_layout_text,
-    back_quoted_string_token(S).
 
 
 prefix_operator_term(T,P) -->
@@ -229,7 +222,6 @@ rest_term(Left,T,LeftP,P) -->
     rest_term(','(Left,Right),T,1000,P).
 rest_term(Term,Term,_,_) -->
     [].
-
 
 
 variable(Var) -->
@@ -350,84 +342,6 @@ alpha_num_seq_char([]) -->
     [].
 
 
-continuation_escape_sequence -->
-    "\\",
-    newline_char.
-
-
-double_quoted_char(C) -->
-    non_quote_char(C).
-double_quoted_char(0'") --> % "'
-    "\"\"".
-double_quoted_char(0'') -->
-    "'".
-double_quoted_char(0'`) -->  % `'
-    "`".
-
-back_quoted_char(C) -->
-    non_quote_char(C).
-back_quoted_char(0'') -->
-    "'".
-back_quoted_char(0'") --> % "'
-    "\"".
-back_quoted_char(0'`) --> % `'
-    "``".
-
-non_quote_char(C) -->
-    graphic_char(C);
-    alpha_num_char(C);
-    solo_char(C);
-    space_char(C);
-    control_escape_seq(C);
-    octal_escape_seq(C);
-    hex_escape_seq(C);
-    meta_escape_seq(C).
-
-
-meta_escape_seq(C) -->
-    "\\",
-    meta_char(C).
-
-control_escape_seq(C) -->
-    "\\",
-    symbolic_control_char(C).
-
-symbolic_control_char(0'\a) -->
-    "a".
-symbolic_control_char(0'\b) -->
-    "b".
-symbolic_control_char(0'\f) -->
-    "f".
-symbolic_control_char(0'\n) -->
-    "n".
-symbolic_control_char(0'\r) -->
-    "r".
-symbolic_control_char(0'\t) -->
-    "t".
-symbolic_control_char(0'\v) -->
-    "v".
-
-octal_escape_seq(C) -->
-    "\\",
-    octal_digit_seq_char(Octal),
-    "\\",
-    { compute_integer(Octal,8,C) }.
-
-octal_digit_seq_char([D|L]) -->
-    octal_digit_char(D),
-    octal_digit_seq_char(L).
-
-hex_escape_seq(C) -->
-    "\\x",
-    hex_digit_seq_char(Hex),
-    "\\",
-    { compute_integer(Hex,16,C) }.
-
-hex_digit_seq_char([D|L]) -->
-    hex_digit_char(D),
-    hex_digit_seq_char(L).
-
-
 variable_token(V) -->
     anonymous_variable(V).
 variable_token(V) -->
@@ -445,38 +359,6 @@ named_variable([C|S]) -->
     alpha_num_seq_char(S).
 
 
-double_quoted_string_token(T) -->
-    "\"",
-    double_quoted_item_seq(L),
-    "\"",
-    { translate_double_quotes(L,T) }.
-
-double_quoted_item_seq([C|S]) -->
-    double_quoted_char(C),
-    double_quoted_item_seq(S).
-double_quoted_item_seq(S) -->
-    continuation_escape_sequence,
-    double_quoted_item_seq(S).
-double_quoted_item_seq([]) -->
-    [].
-
-
-back_quoted_string_token(T) -->
-    "`",
-    back_quoted_item_seq(L),
-    "`",
-    { translate_back_quotes(L,T) }.
-
-back_quoted_item_seq([C|S]) -->
-    back_quoted_char(C),
-    back_quoted_item_seq(S).
-back_quoted_item_seq(S) -->
-    continuation_escape_sequence,
-    back_quoted_item_seq(S).
-back_quoted_item_seq([]) -->
-    [].
-
-
 type_char(Type,C) -->
     [C],
     { code_type(C,Type) }.
@@ -486,49 +368,13 @@ alpha_num_char(C) -->
 alpha_num_char(0'_) -->
     "_".
 
-newline_char -->
-    type_char(newline,_).
-newline_char -->
-    eos.
-
-space_char(C) -->
-    type_char(white,C).
 
 layout_char(C) -->
     type_char(space,C).
 
-graphic_char(C) -->
-    [C],
-    { memberchk(C, `#$&*+-./:<=>?@^~`) }.
-
-solo_char(C) -->
-    [C],
-    { memberchk(C, `!(),;[]{}|&`) }.
-
-meta_char(C) -->
-    [C],
-    { memberchk(C, `\\'"\``) }.
-
 
 capital_letter_char(C) -->
     type_char(upper,C).
-
-octal_digit_char(C) -->
-    type_char(digit(N),C),
-    { between(0,7,N) }.
-
-hex_digit_char(C) -->
-    type_char(xdigit(_),C).
-
-
-compute_integer(Codes,Base,N) :-
-    compute_integer_(Codes,Base,0,N).
-
-compute_integer_([],_,Accum,Accum).
-compute_integer_([Code|Codes],Base,Accum0,N) :-
-    code_type(Code, xdigit(V)),
-    Accum is Base*Accum0 + V,
-    compute_integer_(Codes,Base,Accum,N).
 
 
 is_operator(Op) :-
@@ -564,11 +410,6 @@ prefix_operator(Op,P,RightP) :-
     ; Spec = fy ->
         RightP is P
     ).
-
-translate_back_quotes(Codes,Codes).
-
-translate_double_quotes(Codes, String) :-
-    string_codes(String,Codes).
 
 
 nl -->

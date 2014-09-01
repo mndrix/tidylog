@@ -18,9 +18,11 @@ text(Type,Text) -->
 
 
 text_codes(atom,Atom,Codes) :-
+    when(ground(Atom),atom(Atom)),
     atom_codes(Atom,Codes).
 text_codes(codes,Codes,Codes).
 text_codes(string,String,Codes) :-
+    when(ground(String),string(String)),
     string_codes(String,Codes).
 
 
