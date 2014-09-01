@@ -1,5 +1,8 @@
 :- module(tidylog_dcg, [ read_prolog//1, write_prolog//1 ]).
 
+:- use_module(library(tidylog/atom/name), [name//1]).
+:- use_module(library(tidylog/atom/punc), [punctuation//1]).
+
 :- use_module(library(tidylog/comment/aol), [aol_comment//1]).
 :- use_module(library(tidylog/comment/ml), [ml_comment//1]).
 
@@ -8,6 +11,7 @@
 :- use_module(library(tidylog/number/octal), [octal//1]).
 :- use_module(library(tidylog/number/binary), [binary//1]).
 
+:- use_module(library(tidylog/text), [text//2]).
 
 :- use_module(library(dcg/basics), [ eos//0
                                    , float//1
@@ -119,13 +123,8 @@ atom_term(Op,_P) -->
     { is_operator(Op) }.
 
 atom(A) -->
-    name(A).
-atom('[]') -->
-    open_bracket,
-    close_bracket.
-atom('{}') -->
-    open_curly,
-    close_curly.
+    optional_layout_text,
+    name_token(A).
 
 
 compound_term(T,P) -->
@@ -232,11 +231,6 @@ rest_term(Term,Term,_,_) -->
     [].
 
 
-name(A) -->
-    optional_layout_text,
-    name_token(X),
-    { atom_codes(A,X) }.
-
 
 variable(Var) -->
     optional_layout_text,
@@ -342,20 +336,12 @@ comment(Comment) -->
 
 
 name_token(A) -->
-    letter_digit_token(A).
+    name(A).
 name_token(A) -->
-    quoted_token(A).
+    text(atom, A).
 name_token(A) -->
-    semicolon_token(A).
-name_token(A) -->
-    cut_token(A).
-name_token(A) -->
-    graphic_token(A).
+    punctuation(A).
 
-
-letter_digit_token([S|A]) -->
-    small_letter_char(S),
-    alpha_num_seq_char(A).
 
 alpha_num_seq_char([A|L]) -->
     alpha_num_char(A),
@@ -363,49 +349,11 @@ alpha_num_seq_char([A|L]) -->
 alpha_num_seq_char([]) -->
     [].
 
-graphic_token([C|L]) -->
-    graphic_token_char(C),
-    graphic_token(L).
-graphic_token([C]) -->
-    graphic_token_char(C).
-
-graphic_token_char('\\') -->
-    "\\".
-graphic_token_char(C) -->
-    graphic_char(C).
-
-quoted_token(Q) -->
-    "'",
-    single_quoted_item_seq(Q),
-    "'".
-
-single_quoted_item_seq([C|S]) -->
-    single_quoted_char(C),
-    single_quoted_item_seq(S).
-single_quoted_item_seq(S) -->
-    continuation_escape_sequence,
-    single_quoted_item_seq(S).
-single_quoted_item_seq([]) -->
-    [].
 
 continuation_escape_sequence -->
     "\\",
     newline_char.
 
-semicolon_token([';']) -->
-    ";".
-
-cut_token(['!']) -->
-    "!".
-
-single_quoted_char(C) -->
-    non_quote_char(C).
-single_quoted_char(0'') -->
-    "''".
-single_quoted_char(0'") -->  % "' silly syntax highlighters
-    "\"".
-single_quoted_char(0'`) -->  % `'
-    "`".
 
 double_quoted_char(C) -->
     non_quote_char(C).
@@ -561,8 +509,6 @@ meta_char(C) -->
     [C],
     { memberchk(C, `\\'"\``) }.
 
-small_letter_char(C) -->
-    type_char(lower,C).
 
 capital_letter_char(C) -->
     type_char(upper,C).
