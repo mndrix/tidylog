@@ -3,6 +3,11 @@
 :- use_module(library(tidylog/comment/aol), [aol_comment//1]).
 :- use_module(library(tidylog/comment/ml), [ml_comment//1]).
 
+:- use_module(library(tidylog/number/decimal), [decimal//1]).
+:- use_module(library(tidylog/number/hex), [hex//1]).
+:- use_module(library(tidylog/number/octal), [octal//1]).
+:- use_module(library(tidylog/number/binary), [binary//1]).
+
 
 :- use_module(library(dcg/basics), [ eos//0
                                    , float//1
@@ -53,6 +58,9 @@ term_out(AolComment) -->
     aol_comment(AolComment).
 term_out(MlComment) -->
     ml_comment(MlComment).
+term_out(Integer) -->
+    { integer(Integer) },
+    decimal(Integer).
 term_out(Head :- Body) -->
     term_out(Head),
     " :-",
@@ -78,15 +86,17 @@ number_term(T,P) -->
     float_number(F),
     rest_term(F,T,0,P).
 number_term(T,P) -->
-    % positive integer
-    integer_number(I),
+    decimal(I),
     rest_term(I,T,0,P).
 number_term(T,P) -->
-    % negative integer
-    name('-'),
-    integer_number(I),
-    { NI is -I },
-    rest_term(NI,T,0,P).
+    hex(I),
+    rest_term(I,T,0,P).
+number_term(T,P) -->
+    octal(I),
+    rest_term(I,T,0,P).
+number_term(T,P) -->
+    binary(I),
+    rest_term(I,T,0,P).
 
 
 variable_term(T,P) -->
@@ -236,11 +246,6 @@ variable(Var) -->
 
 set_variable_name(Var,Name) :-
     put_attr(Var,tidylog,name(Name)).
-
-
-integer_number(N) -->
-    optional_layout_text,
-    integer_token(N).
 
 
 float_number(F) -->
@@ -492,47 +497,6 @@ named_variable([C|S]) -->
     alpha_num_seq_char(S).
 
 
-integer_token(N) -->
-    integer_constant(Chars),
-    { number_codes(N, Chars) }.
-integer_token(N) -->
-    character_code_constant(N);
-    binary_constant(N);
-    octal_constant(N);
-    hex_constant(N).
-
-integer_constant([C|N]) -->
-    decimal_digit_char(C),
-    integer_constant(N).
-integer_constant([C]) -->
-    decimal_digit_char(C).
-
-character_code_constant(C) -->
-    "0'",
-    single_quoted_char(C).
-
-binary_constant(N) -->
-    "0b",
-    binary_digit_seq_char(Digits),
-    { compute_integer(Digits,2,N) }.
-
-binary_digit_seq_char([C|L]) -->
-    binary_digit_char(C),
-    binary_digit_seq_char(L).
-binary_digit_seq_char([C]) -->
-    binary_digit_char(C).
-
-octal_constant(N) -->
-    "0o",
-    octal_digit_seq_char(Digits),
-    { compute_integer(Digits,8,N) }.
-
-hex_constant(N) -->
-    "0x",
-    hex_digit_seq_char(Digits),
-    { compute_integer(Digits,16,N) }.
-
-
 double_quoted_string_token(T) -->
     "\"",
     double_quoted_item_seq(L),
@@ -603,16 +567,9 @@ small_letter_char(C) -->
 capital_letter_char(C) -->
     type_char(upper,C).
 
-binary_digit_char(C) -->
-    type_char(digit(N),C),
-    { between(0,1,N) }.
-
 octal_digit_char(C) -->
     type_char(digit(N),C),
     { between(0,7,N) }.
-
-decimal_digit_char(C) -->
-    type_char(digit,C).
 
 hex_digit_char(C) -->
     type_char(xdigit(_),C).

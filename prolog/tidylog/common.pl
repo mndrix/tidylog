@@ -2,6 +2,7 @@
 :- module(tidylog_common, [ codes//1
                           , end_of_line//0
                           , eos//0
+                          , parsing//0
                           , prefer_none//1
                           , prefer_one//1
                           , rest_of_line//1
