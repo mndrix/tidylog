@@ -10,12 +10,11 @@
 :- use_module(library(tidylog/number/hex), [hex//1]).
 :- use_module(library(tidylog/number/octal), [octal//1]).
 :- use_module(library(tidylog/number/binary), [binary//1]).
+:- use_module(library(tidylog/number/float), [float//1]).
 
 :- use_module(library(tidylog/text), [text//2]).
 
-:- use_module(library(dcg/basics), [ eos//0
-                                   , float//1
-                                   ]).
+:- use_module(library(dcg/basics), [eos//0]).
 :- use_module(library(lists), [proper_length/2]).
 :- use_module(library(portray_text), []).
 
@@ -83,8 +82,7 @@ term_out(Head :- Body) -->
     indent,
     term_out(Body).
 term_out(F) -->
-    { float(F) },
-    format("~g",[F]).
+    float(F).
 term_out(T) -->
     format("~q",[T]).
 

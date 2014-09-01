@@ -2,6 +2,7 @@
 :- module(tidylog_common, [ codes//1
                           , end_of_line//0
                           , eos//0
+                          , format//2
                           , parsing//0
                           , prefer_none//1
                           , prefer_one//1
@@ -103,3 +104,10 @@ when_generating(Goal) -->
 :- meta_predicate when_parsing(0,?,?).
 when_parsing(Goal) -->
     ( parsing -> { call(Goal) }; [] ).
+
+
+%% format(+Pattern,+Args)//
+%
+%  Generate format/2 output onto DCG list.
+format(Pattern,Args,H,T) :-
+    format(codes(H,T),Pattern,Args).
